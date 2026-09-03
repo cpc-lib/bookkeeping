@@ -1,0 +1,46 @@
+version: "3.8"
+
+# 小猪记账 App 基础设施：MySQL + Redis + MinIO
+# 启动: docker compose up -d
+services:
+  mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/snow-io/mysql:8.0
+    container_name: bookkeeping-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: bookkeeping
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: registry.cn-hangzhou.aliyuncs.com/snow-io/redis:7.2-alpine
+    container_name: bookkeeping-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  minio:
+    image: registry.cn-hangzhou.aliyuncs.com/snow-io/minio:RELEASE.2024-01-01T16-36-33Z
+    container_name: bookkeeping-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"   # API 端口
+      - "9001:9001"   # 控制台端口
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:

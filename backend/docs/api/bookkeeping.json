@@ -1,0 +1,1383 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "name": "记账本 Bookkeeping API",
+    "description": "记账本项目接口文档\n\n## 基础说明\n- 基础地址: `{{baseUrl}}` (默认 http://localhost:8080)\n- 认证方式: 需登录的接口在请求头携带 `Authorization: Bearer {{accessToken}}` (集合级 Bearer 认证已配置, 变量自动注入)\n- 登录/注册/刷新Token 接口会自动将返回的 accessToken / refreshToken 保存到集合变量, 后续请求无需手动复制\n- 统一响应格式:\n\n```json\n{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {}\n}\n```\n\n## 响应码\n| code | 说明 |\n| --- | --- |\n| 0 | 成功 |\n| 400 | 请求参数错误 |\n| 401 | 登录已失效, 请重新登录 |\n| 403 | 无权访问 |\n| 404 | 资源不存在 |\n| 500 | 服务器内部错误 |\n| 1001 | 用户名已被注册 |\n| 1002 | 用户名或密码错误 |\n| 1003 | 用户不存在 |\n| 1004 | 原密码错误 |\n| 1005 | 该分类名称已存在 |\n| 1006 | 分类不存在 |\n| 1007 | 记账记录不存在 |\n| 1008 | 仅支持图片文件 |\n| 1009 | 文件大小超出限制 |\n| 1010 | 文件上传失败 |\n\n## 枚举值\n- 记录/分类类型 type: `1` - 支出, `2` - 收入\n- 日期格式: `yyyy-MM-dd`\n- 时间格式: `yyyy-MM-dd HH:mm:ss`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "recordId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "认证 Auth",
+      "description": "公开接口, 无需登录",
+      "item": [
+        {
+          "name": "注册",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_user\",\n  \"password\": \"123456\",\n  \"nickname\": \"测试用户\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "注册账号, 成功后直接返回双 Token, 无需二次登录。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| username | string | 是 | 3-20位字母、数字或下划线 |\n| password | string | 是 | 6-20位 |\n| nickname | string | 是 | 昵称, 最长20字符 |\n\n**错误码**: 1001 用户名已被注册"
+          },
+          "response": [
+            {
+              "name": "注册成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"test_user\",\n  \"password\": \"123456\",\n  \"nickname\": \"测试用户\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"accessExpire\": 7200,\n    \"refreshExpire\": 604800,\n    \"userInfo\": {\n      \"id\": 1,\n      \"username\": \"test_user\",\n      \"nickname\": \"测试用户\",\n      \"avatar\": null\n    }\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  console.log('Token 已自动保存到集合变量');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "登录",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_user\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "登录, 返回双 Token 及用户信息。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| username | string | 是 | 用户名 |\n| password | string | 是 | 密码 |\n\n**错误码**: 1002 用户名或密码错误"
+          },
+          "response": [
+            {
+              "name": "登录成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"test_user\",\n  \"password\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"accessExpire\": 7200,\n    \"refreshExpire\": 604800,\n    \"userInfo\": {\n      \"id\": 1,\n      \"username\": \"test_user\",\n      \"nickname\": \"测试用户\",\n      \"avatar\": null\n    }\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  console.log('Token 已自动保存到集合变量');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "刷新Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "使用 refreshToken 换取新的双 Token (refreshToken 轮换, 旧 refreshToken 作废)。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| refreshToken | string | 是 | 登录/注册/刷新时返回的 refreshToken |\n\n**错误码**: 401 登录已失效(refreshToken 过期或无效)"
+          },
+          "response": [
+            {
+              "name": "刷新成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/refresh",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "refresh"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9...\",\n    \"accessExpire\": 7200,\n    \"refreshExpire\": 604800,\n    \"userInfo\": {\n      \"id\": 1,\n      \"username\": \"test_user\",\n      \"nickname\": \"测试用户\",\n      \"avatar\": null\n    }\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  console.log('Token 已自动保存到集合变量');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "登出",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessToken\": \"{{accessToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "登出, 使指定 accessToken 与 refreshToken 失效。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| accessToken | string | 是 | 当前 accessToken |\n| refreshToken | string | 否 | 当前 refreshToken |"
+          },
+          "response": [
+            {
+              "name": "登出成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accessToken\": \"{{accessToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "用户 User",
+      "description": "需登录, 携带 Bearer Token",
+      "item": [
+        {
+          "name": "当前登录用户信息",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "info"
+              ]
+            },
+            "description": "获取当前登录用户信息。\n\n**返回字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| data.id | long | 用户ID |\n| data.username | string | 用户名 |\n| data.nickname | string | 昵称 |\n| data.avatar | string | 头像URL, 可为空 |\n\n**错误码**: 401 登录已失效"
+          },
+          "response": [
+            {
+              "name": "获取成功",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/info",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "info"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"test_user\",\n    \"nickname\": \"测试用户\",\n    \"avatar\": null\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "修改密码",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"123456\",\n  \"newPassword\": \"1234567\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "password"
+              ]
+            },
+            "description": "修改密码, 成功后所有设备的 Token 失效, 需重新登录。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| oldPassword | string | 是 | 原密码 |\n| newPassword | string | 是 | 新密码, 6-20位 |\n\n**错误码**: 1004 原密码错误"
+          },
+          "response": [
+            {
+              "name": "修改成功",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"123456\",\n  \"newPassword\": \"1234567\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "password"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "分类 Category",
+      "description": "需登录, 携带 Bearer Token",
+      "item": [
+        {
+          "name": "分类列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/category/list?type=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "1",
+                  "description": "1-支出 2-收入, 不传则返回全部"
+                }
+              ]
+            },
+            "description": "获取当前用户的分类列表。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| type | int | 否 | 1-支出 2-收入, 不传返回全部 |\n\n**data 数组元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 分类ID |\n| userId | long | 所属用户ID |\n| name | string | 分类名称 |\n| type | int | 1-支出 2-收入 |\n| icon | string | 图标(emoji) |\n| createdAt | string | 创建时间 |\n| updatedAt | string | 更新时间 |"
+          },
+          "response": [
+            {
+              "name": "查询成功",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/category/list?type=1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "category",
+                    "list"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "1",
+                      "description": "1-支出 2-收入, 不传则返回全部"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"userId\": 1,\n      \"name\": \"餐饮\",\n      \"type\": 1,\n      \"icon\": \"🍜\",\n      \"createdAt\": \"2026-09-01 10:00:00\",\n      \"updatedAt\": \"2026-09-01 10:00:00\"\n    },\n    {\n      \"id\": 2,\n      \"userId\": 1,\n      \"name\": \"交通\",\n      \"type\": 1,\n      \"icon\": \"🚌\",\n      \"createdAt\": \"2026-09-01 10:00:00\",\n      \"updatedAt\": \"2026-09-01 10:00:00\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "新增分类",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": 1,\n  \"name\": \"餐饮\",\n  \"icon\": \"🍜\",\n  \"isEdit\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/category/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "save"
+              ]
+            },
+            "description": "新增分类。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| type | int | 新增时必填 | 1-支出 2-收入 |\n| name | string | 是 | 分类名称, 最长20字符 |\n| icon | string | 否 | 图标, 最长50字符 |\n| isEdit | boolean | 是 | 固定 false |\n\n**错误码**: 1005 该分类名称已存在"
+          },
+          "response": [
+            {
+              "name": "新增成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": 1,\n  \"name\": \"餐饮\",\n  \"icon\": \"🍜\",\n  \"isEdit\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/category/save",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "category",
+                    "save"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0) {",
+                  "  console.log('新增分类成功, 可在【分类列表】中查看新分类ID');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "编辑分类",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{categoryId}},\n  \"name\": \"美食餐饮\",\n  \"icon\": \"🍚\",\n  \"isEdit\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/category/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "save"
+              ]
+            },
+            "description": "编辑分类。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| id | long | 是 | 分类ID (集合变量 categoryId) |\n| name | string | 是 | 分类名称, 最长20字符 |\n| icon | string | 否 | 图标 |\n| isEdit | boolean | 是 | 固定 true |\n\n**错误码**: 1005 该分类名称已存在, 1006 分类不存在"
+          },
+          "response": [
+            {
+              "name": "编辑成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": {{categoryId}},\n  \"name\": \"美食餐饮\",\n  \"icon\": \"🍚\",\n  \"isEdit\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/category/save",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "category",
+                    "save"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "删除分类",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/category/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{categoryId}}",
+                  "description": "分类ID"
+                }
+              ]
+            },
+            "description": "删除分类 (历史记录通过名称快照仍可展示)。\n\n**路径参数**\n| 参数 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 分类ID (集合变量 categoryId) |\n\n**错误码**: 1006 分类不存在"
+          },
+          "response": [
+            {
+              "name": "删除成功",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/category/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "category",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "{{categoryId}}",
+                      "description": "分类ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "记账记录 Record",
+      "description": "需登录, 携带 Bearer Token",
+      "item": [
+        {
+          "name": "分页查询记录",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/record/page?page=1&size=10&type=1&categoryId=&startDate=2026-09-01&endDate=2026-09-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "record",
+                "page"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "页码, 默认1"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "每页条数, 默认10"
+                },
+                {
+                  "key": "type",
+                  "value": "1",
+                  "description": "1-支出 2-收入, 不传查全部"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "分类ID, 不传查全部分类"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-09-01",
+                  "description": "开始日期 yyyy-MM-dd"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-09-30",
+                  "description": "结束日期 yyyy-MM-dd"
+                }
+              ]
+            },
+            "description": "分页查询当前用户的记账记录, 附带查询区间内收支汇总。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| page | long | 否 | 页码, 默认1 |\n| size | long | 否 | 每页条数, 默认10 |\n| type | int | 否 | 1-支出 2-收入 |\n| categoryId | long | 否 | 分类ID |\n| startDate | string | 否 | 开始日期 yyyy-MM-dd |\n| endDate | string | 否 | 结束日期 yyyy-MM-dd |\n\n**返回字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| data.list | array | 记录列表 (字段见 data.list 元素) |\n| data.total | long | 总条数 |\n| data.page | long | 当前页码 |\n| data.size | long | 每页条数 |\n| data.totalExpense | number | 区间内支出合计 |\n| data.totalIncome | number | 区间内收入合计 |\n\n**data.list 元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 记录ID |\n| userId | long | 用户ID |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称快照 |\n| categoryIcon | string | 分类图标快照 |\n| type | int | 1-支出 2-收入 |\n| amount | number | 金额 |\n| remark | string | 备注 |\n| voucherUrl | string | 凭证图片URL |\n| recordDate | string | 记账日期 yyyy-MM-dd |\n| createdAt | string | 创建时间 |\n| updatedAt | string | 更新时间 |"
+          },
+          "response": [
+            {
+              "name": "查询成功",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/record/page?page=1&size=10&type=1&categoryId=&startDate=2026-09-01&endDate=2026-09-30",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "record",
+                    "page"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "页码, 默认1"
+                    },
+                    {
+                      "key": "size",
+                      "value": "10",
+                      "description": "每页条数, 默认10"
+                    },
+                    {
+                      "key": "type",
+                      "value": "1",
+                      "description": "1-支出 2-收入, 不传查全部"
+                    },
+                    {
+                      "key": "categoryId",
+                      "value": "",
+                      "description": "分类ID, 不传查全部分类"
+                    },
+                    {
+                      "key": "startDate",
+                      "value": "2026-09-01",
+                      "description": "开始日期 yyyy-MM-dd"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2026-09-30",
+                      "description": "结束日期 yyyy-MM-dd"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"list\": [\n      {\n        \"id\": 1,\n        \"userId\": 1,\n        \"categoryId\": 1,\n        \"categoryName\": \"餐饮\",\n        \"categoryIcon\": \"🍜\",\n        \"type\": 1,\n        \"amount\": 25.50,\n        \"remark\": \"午餐\",\n        \"voucherUrl\": null,\n        \"recordDate\": \"2026-09-03\",\n        \"createdAt\": \"2026-09-03 12:00:00\",\n        \"updatedAt\": \"2026-09-03 12:00:00\"\n      }\n    ],\n    \"total\": 1,\n    \"page\": 1,\n    \"size\": 10,\n    \"totalExpense\": 25.50,\n    \"totalIncome\": 0.00\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code === 0 && json.data && json.data.list && json.data.list.length > 0) {",
+                  "  pm.collectionVariables.set('recordId', json.data.list[0].id);",
+                  "  pm.collectionVariables.set('categoryId', json.data.list[0].categoryId);",
+                  "  console.log('已将最新一条记录ID/分类ID 保存到集合变量');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "新增记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": {{categoryId}},\n  \"amount\": 25.50,\n  \"remark\": \"午餐\",\n  \"voucherUrl\": \"\",\n  \"recordDate\": \"2026-09-03\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/record/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "record",
+                "add"
+              ]
+            },
+            "description": "新增记账记录。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| categoryId | long | 是 | 分类ID (集合变量 categoryId) |\n| amount | number | 是 | 金额, 必须大于0 |\n| remark | string | 否 | 备注, 最长255字符 |\n| voucherUrl | string | 否 | 凭证图片URL, 由文件上传接口返回 |\n| recordDate | string | 是 | 记账日期 yyyy-MM-dd |\n\n**错误码**: 1006 分类不存在"
+          },
+          "response": [
+            {
+              "name": "新增成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"categoryId\": {{categoryId}},\n  \"amount\": 25.50,\n  \"remark\": \"午餐\",\n  \"voucherUrl\": \"\",\n  \"recordDate\": \"2026-09-03\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/record/add",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "record",
+                    "add"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "编辑记录",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{recordId}},\n  \"categoryId\": {{categoryId}},\n  \"amount\": 30.00,\n  \"remark\": \"午餐(加了个鸡腿)\",\n  \"voucherUrl\": \"\",\n  \"recordDate\": \"2026-09-03\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/record/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "record",
+                "update"
+              ]
+            },
+            "description": "编辑记账记录。\n\n**请求参数(JSON)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| id | long | 是 | 记录ID (集合变量 recordId) |\n| 其余字段 | - | - | 同新增记录 |\n\n**错误码**: 1006 分类不存在, 1007 记账记录不存在"
+          },
+          "response": [
+            {
+              "name": "编辑成功",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": {{recordId}},\n  \"categoryId\": {{categoryId}},\n  \"amount\": 30.00,\n  \"remark\": \"午餐(加了个鸡腿)\",\n  \"voucherUrl\": \"\",\n  \"recordDate\": \"2026-09-03\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/record/update",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "record",
+                    "update"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "删除记录",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/record/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "record",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{recordId}}",
+                  "description": "记录ID"
+                }
+              ]
+            },
+            "description": "删除记账记录。\n\n**路径参数**\n| 参数 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 记录ID (集合变量 recordId) |\n\n**错误码**: 1007 记账记录不存在"
+          },
+          "response": [
+            {
+              "name": "删除成功",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/record/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "record",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "{{recordId}}",
+                      "description": "记录ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "分类维度统计(饼图)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/record/stat/category?type=1&startDate=2026-09-01&endDate=2026-09-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "record",
+                "stat",
+                "category"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "1",
+                  "description": "1-支出 2-收入, 不传则合并统计"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-09-01",
+                  "description": "必填, 开始日期 yyyy-MM-dd"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-09-30",
+                  "description": "必填, 结束日期 yyyy-MM-dd"
+                }
+              ]
+            },
+            "description": "按分类维度统计区间内收支 (用于饼图展示)。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| type | int | 否 | 1-支出 2-收入, 不传则合并统计 |\n| startDate | string | 是 | 开始日期 yyyy-MM-dd |\n| endDate | string | 是 | 结束日期 yyyy-MM-dd |\n\n**data 数组元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称 |\n| icon | string | 分类图标 |\n| type | int | 1-支出 2-收入 |\n| total | number | 该分类合计金额 |\n| percent | number | 占比(0-100, 保留1位小数) |"
+          },
+          "response": [
+            {
+              "name": "统计成功",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/record/stat/category?type=1&startDate=2026-09-01&endDate=2026-09-30",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "record",
+                    "stat",
+                    "category"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "1",
+                      "description": "1-支出 2-收入, 不传则合并统计"
+                    },
+                    {
+                      "key": "startDate",
+                      "value": "2026-09-01",
+                      "description": "必填, 开始日期 yyyy-MM-dd"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2026-09-30",
+                      "description": "必填, 结束日期 yyyy-MM-dd"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": [\n    {\n      \"categoryId\": 1,\n      \"categoryName\": \"餐饮\",\n      \"icon\": \"🍜\",\n      \"type\": 1,\n      \"total\": 1500.00,\n      \"percent\": 60.0\n    },\n    {\n      \"categoryId\": 2,\n      \"categoryName\": \"交通\",\n      \"icon\": \"🚌\",\n      \"type\": 1,\n      \"total\": 1000.00,\n      \"percent\": 40.0\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "文件 File",
+      "description": "需登录, 携带 Bearer Token",
+      "item": [
+        {
+          "name": "上传凭证图片",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "凭证图片文件, 仅支持图片, 最大10MB"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/file/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "file",
+                "upload"
+              ]
+            },
+            "description": "上传凭证图片到 MinIO, 返回可访问的图片 URL。\n\n**Body 参数(form-data)**\n| 字段 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| file | file | 是 | 图片文件, 最大10MB |\n\n**返回字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| data.url | string | 图片访问URL, 用于记账记录的 voucherUrl |\n\n**错误码**: 1008 仅支持图片文件, 1009 文件大小超出限制, 1010 文件上传失败"
+          },
+          "response": [
+            {
+              "name": "上传成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": [],
+                      "description": "凭证图片文件, 仅支持图片, 最大10MB"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/file/upload",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "file",
+                    "upload"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": 0,\n  \"msg\": \"success\",\n  \"data\": {\n    \"url\": \"http://192.168.1.200:39000/voucher/2026/09/03/uuid.jpg\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

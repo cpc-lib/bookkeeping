@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react';
-import dayjs, { type Dayjs } from 'dayjs';
 import { message, Spin } from 'antd';
 import { recordApi } from '../api/record';
 import { ApiException } from '../api/client';
 import type { CategoryStat } from '../models/types';
 import { PIE_COLORS } from '../models/constants';
 import { useDataStore } from '../stores/data';
-import MonthPicker from '../components/MonthPicker';
+import DateRangePicker, { initialDateRange, resolveRange, type DateRangeState } from '../components/DateRangePicker';
 import EmptyView from '../components/EmptyView';
 import DonutChart from '../components/DonutChart';
 
-/** 统计页: 月度收支环形图 + 分类排行 */
+/** 统计页: 区间收支环形图 + 分类排行 */
 export default function StatsPage() {
   const version = useDataStore((s) => s.version);
-  const [month, setMonth] = useState<Dayjs>(dayjs().startOf('month'));
+  const [range, setRange] = useState<DateRangeState>(initialDateRange);
   const [type, setType] = useState<1 | 2>(1);
   const [stats, setStats] = useState<CategoryStat[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,12 +20,9 @@ export default function StatsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const { startDate, endDate } = resolveRange(range);
     recordApi
-      .statByCategory({
-        type,
-        startDate: month.startOf('month').format('YYYY-MM-DD'),
-        endDate: month.endOf('month').format('YYYY-MM-DD'),
-      })
+      .statByCategory({ type, startDate, endDate })
       .then((list) => {
         if (!cancelled) setStats(list ?? []);
       })
@@ -39,7 +35,7 @@ export default function StatsPage() {
     return () => {
       cancelled = true;
     };
-  }, [month, type, version]);
+  }, [range, type, version]);
 
   const total = stats.reduce((s, i) => s + i.total, 0);
   const max = stats.reduce((m, i) => Math.max(m, i.total), 0);
@@ -48,7 +44,7 @@ export default function StatsPage() {
   return (
     <div>
       <div className="px-4 pt-3">
-        <MonthPicker month={month} onChange={setMonth} />
+        <DateRangePicker value={range} onChange={setRange} />
       </div>
 
       {/* 支出/收入切换 */}
@@ -77,13 +73,13 @@ export default function StatsPage() {
           <Spin size="large" />
         </div>
       ) : stats.length === 0 ? (
-        <EmptyView emoji="📊" text="本月暂无数据~" />
+        <EmptyView emoji="📊" text="该区间暂无数据~" />
       ) : (
         <div className="px-4 pb-6">
           {/* 环形图卡片 */}
           <div className="cartoon-card mt-3 flex flex-col items-center p-5">
             <div className="mb-1 self-start text-[13px] text-sub">
-              {type === 1 ? '本月总支出' : '本月总收入'}
+              {type === 1 ? '区间总支出' : '区间总收入'}
             </div>
             <DonutChart
               size={190}
@@ -96,6 +92,9 @@ export default function StatsPage() {
                   </div>
                   <div className="mt-0.5 text-xs text-sub">
                     {stats.length} 个{type === 1 ? '支出' : '收入'}分类
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-sub/70">
+                    {resolveRange(range).label}
                   </div>
                 </div>
               }

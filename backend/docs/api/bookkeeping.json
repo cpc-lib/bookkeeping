@@ -902,16 +902,16 @@
                 {
                   "key": "startDate",
                   "value": "2026-09-01",
-                  "description": "开始日期 yyyy-MM-dd"
+                  "description": "开始日期 yyyy-MM-dd, 不传则不限"
                 },
                 {
                   "key": "endDate",
                   "value": "2026-09-30",
-                  "description": "结束日期 yyyy-MM-dd"
+                  "description": "结束日期 yyyy-MM-dd, 不传则不限"
                 }
               ]
             },
-            "description": "分页查询当前用户的记账记录, 附带查询区间内收支汇总。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| page | long | 否 | 页码, 默认1 |\n| size | long | 否 | 每页条数, 默认10 |\n| type | int | 否 | 1-支出 2-收入 |\n| categoryId | long | 否 | 分类ID |\n| startDate | string | 否 | 开始日期 yyyy-MM-dd |\n| endDate | string | 否 | 结束日期 yyyy-MM-dd |\n\n**返回字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| data.list | array | 记录列表 (字段见 data.list 元素) |\n| data.total | long | 总条数 |\n| data.page | long | 当前页码 |\n| data.size | long | 每页条数 |\n| data.totalExpense | number | 区间内支出合计 |\n| data.totalIncome | number | 区间内收入合计 |\n\n**data.list 元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 记录ID |\n| userId | long | 用户ID |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称快照 |\n| categoryIcon | string | 分类图标快照 |\n| type | int | 1-支出 2-收入 |\n| amount | number | 金额 |\n| remark | string | 备注 |\n| voucherUrl | string | 凭证图片URL |\n| recordDate | string | 记账日期 yyyy-MM-dd |\n| createdAt | string | 创建时间 |\n| updatedAt | string | 更新时间 |"
+            "description": "分页查询当前用户的记账记录, 附带查询区间的收支汇总。所有筛选参数均可省略: 不传日期区间时查询全部记录, 汇总为对应范围的合计。开始日期晚于结束日期时返回 400 错误。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| page | long | 否 | 页码, 默认1 |\n| size | long | 否 | 每页条数, 默认10 |\n| type | int | 否 | 1-支出 2-收入 |\n| categoryId | long | 否 | 分类ID |\n| startDate | string | 否 | 开始日期 yyyy-MM-dd, 不传则不限 |\n| endDate | string | 否 | 结束日期 yyyy-MM-dd, 不传则不限 |\n\n**返回字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| data.list | array | 记录列表 (字段见 data.list 元素) |\n| data.total | long | 总条数 |\n| data.page | long | 当前页码 |\n| data.size | long | 每页条数 |\n| data.totalExpense | number | 区间内支出合计 |\n| data.totalIncome | number | 区间内收入合计 |\n\n**data.list 元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| id | long | 记录ID |\n| userId | long | 用户ID |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称快照 |\n| categoryIcon | string | 分类图标快照 |\n| type | int | 1-支出 2-收入 |\n| amount | number | 金额 |\n| remark | string | 备注 |\n| voucherUrl | string | 凭证图片URL |\n| recordDate | string | 记账日期 yyyy-MM-dd |\n| createdAt | string | 创建时间 |\n| updatedAt | string | 更新时间 |"
           },
           "response": [
             {
@@ -953,12 +953,12 @@
                     {
                       "key": "startDate",
                       "value": "2026-09-01",
-                      "description": "开始日期 yyyy-MM-dd"
+                      "description": "开始日期 yyyy-MM-dd, 不传则不限"
                     },
                     {
                       "key": "endDate",
                       "value": "2026-09-30",
-                      "description": "结束日期 yyyy-MM-dd"
+                      "description": "结束日期 yyyy-MM-dd, 不传则不限"
                     }
                   ]
                 }
@@ -1247,7 +1247,7 @@
                 }
               ]
             },
-            "description": "按分类维度统计区间内收支 (用于饼图展示)。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| type | int | 否 | 1-支出 2-收入, 不传则合并统计 |\n| startDate | string | 是 | 开始日期 yyyy-MM-dd |\n| endDate | string | 是 | 结束日期 yyyy-MM-dd |\n\n**data 数组元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称 |\n| icon | string | 分类图标 |\n| type | int | 1-支出 2-收入 |\n| total | number | 该分类合计金额 |\n| percent | number | 占比(0-100, 保留1位小数) |"
+            "description": "按分类维度统计区间内收支 (用于饼图展示)。开始日期晚于结束日期时返回 400 错误。\n\n**Query 参数**\n| 参数 | 类型 | 必填 | 说明 |\n| --- | --- | --- | --- |\n| type | int | 否 | 1-支出 2-收入, 不传则合并统计 |\n| startDate | string | 是 | 必填, 开始日期 yyyy-MM-dd |\n| endDate | string | 是 | 必填, 结束日期 yyyy-MM-dd |\n\n**data 数组元素字段**\n| 字段 | 类型 | 说明 |\n| --- | --- | --- |\n| categoryId | long | 分类ID |\n| categoryName | string | 分类名称 |\n| icon | string | 分类图标 |\n| type | int | 1-支出 2-收入 |\n| total | number | 该分类合计金额 |\n| percent | number | 占比(0-100, 保留1位小数) |"
           },
           "response": [
             {

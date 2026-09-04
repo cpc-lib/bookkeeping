@@ -38,6 +38,7 @@ public class RecordService {
      */
     public PageResult<Record> page(long page, long size, Integer type, Long categoryId,
                                    String startDate, String endDate) {
+        validateRange(startDate, endDate);
         LambdaQueryWrapper<Record> wrapper = buildQueryWrapper(type, categoryId, startDate, endDate);
         wrapper.orderByDesc(Record::getRecordDate)
                 .orderByDesc(Record::getId);
@@ -85,6 +86,7 @@ public class RecordService {
      * @param type 1-支出 2-收入
      */
     public List<CategoryStatItem> statByCategory(Integer type, String startDate, String endDate) {
+        validateRange(startDate, endDate);
         List<Record> records = recordMapper.selectList(
                 buildQueryWrapper(type, null, startDate, endDate));
 
@@ -121,9 +123,14 @@ public class RecordService {
         LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<Record>()
                 .eq(Record::getUserId, UserContext.getUserId())
                 .eq(type != null, Record::getType, type)
-                .eq(categoryId != null, Record::getCategoryId, categoryId)
-                .ge(startDate != null && !startDate.isEmpty(), Record::getRecordDate, parseDate(startDate))
-                .le(endDate != null && !endDate.isEmpty(), Record::getRecordDate, parseDate(endDate));
+                .eq(categoryId != null, Record::getCategoryId, categoryId);
+        // 日期条件需手动判断, 避免 parseDate 在条件不成立时仍被求值导致NPE/格式错误
+        if (startDate != null && !startDate.isEmpty()) {
+            wrapper.ge(Record::getRecordDate, parseDate(startDate));
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            wrapper.le(Record::getRecordDate, parseDate(endDate));
+        }
         return wrapper;
     }
 
@@ -147,6 +154,13 @@ public class RecordService {
         r.setRemark(req.getRemark() == null ? "" : req.getRemark());
         r.setVoucherUrl(req.getVoucherUrl());
         r.setRecordDate(parseDate(req.getRecordDate()));
+    }
+
+    private void validateRange(String startDate, String endDate) {
+        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()
+                && parseDate(startDate).isAfter(parseDate(endDate))) {
+            throw new BusinessException(ResultCode.BAD_REQUEST, "开始日期不能晚于结束日期");
+        }
     }
 
     private Record getOwnedRecord(Long id) {

@@ -119,7 +119,7 @@ client.interceptors.response.use(
 );
 
 // region 通用请求方法: 剥离Result壳, 直接返回data
-export async function get<T>(url: string, params?: Record<string, unknown>): Promise<T | null> {
+export async function get<T>(url: string, params?: object): Promise<T | null> {
   const resp = await client.get<Envelope<T>>(url, { params });
   return (resp.data as Envelope<T>).data;
 }
@@ -134,7 +134,7 @@ export async function put<T>(url: string, data?: unknown): Promise<T | null> {
   return (resp.data as Envelope<T>).data;
 }
 
-export async function del<T>(url: string, params?: Record<string, unknown>): Promise<T | null> {
+export async function del<T>(url: string, params?: object): Promise<T | null> {
   const resp = await client.delete<Envelope<T>>(url, { params });
   return (resp.data as Envelope<T>).data;
 }

@@ -43,7 +43,11 @@ public class MinioConfig {
     @PostConstruct
     public void initBucket() {
         try {
-            MinioClient client = minioClient();
+            // 直接构建client, 不调用minioClient(): 该方法触发Bean工厂创建, 而工厂方法在当前创建中的minioConfig上, 会形成循环引用
+            MinioClient client = MinioClient.builder()
+                    .endpoint(endpoint)
+                    .credentials(accessKey, secretKey)
+                    .build();
             boolean exists = client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
             if (!exists) {
                 client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());

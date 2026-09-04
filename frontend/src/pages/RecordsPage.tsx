@@ -1,22 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { message, Spin } from 'antd';
 import { recordApi } from '../api/record';
 import { ApiException } from '../api/client';
 import type { RecordItem } from '../models/types';
 import { useDataStore } from '../stores/data';
-import MonthPicker from '../components/MonthPicker';
+import DateRangePicker, { initialDateRange, resolveRange, type DateRangeState } from '../components/DateRangePicker';
 import EmptyView from '../components/EmptyView';
 
 const PAGE_SIZE = 20;
 
-/** 明细页: 按月查看收支记录 */
+/** 明细页: 按月/近7天/近一个月/自定义区间查看收支记录 */
 export default function RecordsPage() {
   const navigate = useNavigate();
   const version = useDataStore((s) => s.version);
 
-  const [month, setMonth] = useState<Dayjs>(dayjs().startOf('month'));
+  const [range, setRange] = useState<DateRangeState>(initialDateRange);
   const [typeFilter, setTypeFilter] = useState<0 | 1 | 2>(0);
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -28,17 +28,18 @@ export default function RecordsPage() {
 
   /** 加载分页数据 */
   const load = useCallback(
-    async (targetPage: number, replace: boolean) => {
+    async (targetPage: number, replace: boolean, r: DateRangeState) => {
       if (loadingRef.current) return;
       loadingRef.current = true;
       setLoading(true);
+      const { startDate, endDate } = resolveRange(r);
       try {
         const result = await recordApi.page({
           page: targetPage,
           size: PAGE_SIZE,
           type: typeFilter === 0 ? undefined : (typeFilter as 1 | 2),
-          startDate: month.startOf('month').format('YYYY-MM-DD'),
-          endDate: month.endOf('month').format('YYYY-MM-DD'),
+          startDate,
+          endDate,
         });
         if (!result) return;
         if (replace) {
@@ -57,14 +58,14 @@ export default function RecordsPage() {
         setLoading(false);
       }
     },
-    [month, typeFilter, records.length],
+    [typeFilter, records.length],
   );
 
-  // 月份/类型/数据版本变化 -> 重新加载第一页
+  // 日期区间/类型/数据版本变化 -> 重新加载第一页
   useEffect(() => {
-    load(1, true);
+    load(1, true, range);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month, typeFilter, version]);
+  }, [range, typeFilter, version]);
 
   // 滚动到底部自动加载更多
   useEffect(() => {
@@ -74,12 +75,12 @@ export default function RecordsPage() {
         !loadingRef.current &&
         window.innerHeight + window.scrollY >= document.body.scrollHeight - 120
       ) {
-        load(page, false);
+        load(page, false, range);
       }
     };
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
-  }, [hasMore, page, load]);
+  }, [hasMore, page, load, range]);
 
   /** 按日期分组 */
   const groups: { date: string; items: RecordItem[] }[] = [];
@@ -97,7 +98,7 @@ export default function RecordsPage() {
   return (
     <div>
       <div className="px-4 pt-3">
-        <MonthPicker month={month} onChange={setMonth} />
+        <DateRangePicker value={range} onChange={setRange} />
       </div>
 
       {/* 收支汇总卡 */}
@@ -189,9 +190,10 @@ function RecordRow({ record, onClick }: { record: RecordItem; onClick: () => voi
           {record.categoryName}
           {record.voucherUrl && <span className="text-[13px]">📷</span>}
         </div>
-        {record.remark && (
-          <div className="truncate text-xs text-sub">{record.remark}</div>
-        )}
+        <div className="mt-0.5 truncate text-xs text-sub">
+          {formatRowTime(record.createdAt)}
+          {record.remark && <span> · {record.remark}</span>}
+        </div>
       </div>
       <div className={`shrink-0 text-[17px] font-bold ${isExpense ? 'text-expense' : 'text-income'}`}>
         {isExpense ? '-' : '+'}
@@ -201,12 +203,20 @@ function RecordRow({ record, onClick }: { record: RecordItem; onClick: () => voi
   );
 }
 
-/** 日期头: 今天/昨天/x月x日 · 周x */
+/** 日期头: 今天/昨天/x月x日(含具体日期) · 周x */
 function formatDayHeader(date: string): string {
   const d = dayjs(date);
   const today = dayjs();
   const yesterday = today.subtract(1, 'day');
-  if (d.isSame(today, 'day')) return `今天 · ${d.format('dd')}`;
-  if (d.isSame(yesterday, 'day')) return `昨天 · ${d.format('dd')}`;
-  return `${d.format('M月D日')} · ${d.format('dd')}`;
+  const dayLabel = d.format('M月D日');
+  const weekday = d.format('dd');
+  if (d.isSame(today, 'day')) return `今天 ${dayLabel} · ${weekday}`;
+  if (d.isSame(yesterday, 'day')) return `昨天 ${dayLabel} · ${weekday}`;
+  return `${dayLabel} · ${weekday}`;
+}
+
+/** 行内时间: HH:mm */
+function formatRowTime(createdAt: string): string {
+  const d = dayjs(createdAt);
+  return d.isValid() ? d.format('HH:mm') : '';
 }
